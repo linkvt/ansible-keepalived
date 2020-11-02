@@ -1,0 +1,21 @@
+entryPoints:
+  web:
+    address: ":80"
+
+  websecure:
+    address: ":443"
+
+# Docker configuration backend
+providers:
+  file:
+    directory: "{{ traefik_configuration_directory_dynamic }}"
+    watch: true
+  docker:
+    defaultRule: {% raw %}"Host(`{{ trimPrefix `/` .Name }}.docker.localhost`)"{% endraw %}
+
+# API and dashboard configuration
+api:
+  insecure: true
+
+metrics:
+  prometheus: {}

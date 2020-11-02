@@ -1,0 +1,46 @@
+- name: Install keepalived
+  package:
+    name: keepalived
+    state: present
+- name: Copy the config file
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+  register: keepalived_config
+- name: restart keepalived
+  service:
+    name: keepalived
+    state: restarted
+    enabled: yes
+  when: keepalived_config.changed
+
+- name: Create the configuration directory
+  file:
+    state: directory
+    path: "{{ traefik_configuration_directory }}"
+    mode: '700'
+
+- name: Copy the traefik configuration on the host
+  template:
+    src: traefik.yml.j2
+    dest: "{{ traefik_configuration_directory }}/traefik.yml"
+  register: traefik_configuration
+
+- name: Copy the dynamic configuration templates
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ traefik_configuration_directory_dynamic }}'
+  with_filetree: dynamic_configuration
+
+- name: Start the traefik container
+  docker_container:
+    name: traefik
+    image: traefik
+    restart: "{{ traefik_configuration.changed }}"
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - "{{ traefik_configuration_directory }}:{{ traefik_configuration_directory }}"
+      - /var/run/docker.sock:/var/run/docker.sock

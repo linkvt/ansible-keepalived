@@ -1,0 +1,2 @@
+traefik_configuration_directory: /etc/traefik
+traefik_configuration_directory_dynamic: "{{traefik_configuration_directory}}/dynamic"

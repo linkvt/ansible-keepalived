@@ -1,0 +1,8 @@
+- name: setup loadbalancers
+  hosts: load_balancer
+  roles:
+    - load_balancer
+    - load_balancer_examples
+
+  # tasks:
+  #   - debug: var=ansible_default_ipv4

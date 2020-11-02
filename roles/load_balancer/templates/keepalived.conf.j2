@@ -1,0 +1,36 @@
+{# vrrp_script chk_nginx {
+    script "pidof nginx"
+    interval 2
+} #}
+
+vrrp_instance VI_1 {
+    interface {{ ansible_default_ipv4.interface }}
+    state {{ 'MASTER' if inventory_hostname in groups['load_balancer_primary'] else 'BACKUP' }}
+    priority {{ lb_priority }}
+
+    virtual_router_id 42
+    unicast_src_ip {{ ansible_default_ipv4.address }}
+    unicast_peer {
+{% for host in groups['load_balancer'] %}
+{% if host != inventory_hostname %}
+        {{ hostvars[host].ansible_default_ipv4.address }}
+{% endif %}
+{% endfor %}
+    }
+
+    # The virtual ip address shared between the two loadbalancers
+    virtual_ipaddress {
+        {{ lb_virtual_ip }}
+    }
+
+    authentication {
+        auth_type PASS
+        auth_pass password
+    }
+
+    {# track_script {
+        chk_nginx
+    } #}
+
+    notify_master /etc/keepalived/master.sh
+}

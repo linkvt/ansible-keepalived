@@ -1,0 +1,6 @@
+- name: Start an example container
+  docker_container:
+    name: example
+    image: nginxdemos/hello
+    ports:
+      - 8081:80
